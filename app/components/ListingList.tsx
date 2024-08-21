@@ -80,44 +80,4 @@ export default function ListingList({
       </SheetContent>
     </Sheet>
   );
-
-  // return (
-  //   <div
-  //     className={`${
-  //       isExpanded ? "" : "-translate-x-full"
-  //     } shadow h-full fixed bg-background top-0 left-0 z-[999] overflow-auto`}
-  //   >
-  //     <div className="p-4 space-y-2">
-  //       <div className="flex justify-between items-center">
-  //         <h2 className="text-sm font-bold p-4">
-  //           {`${data.length} apartments in ${
-  //             districtName ? districtName + "," : ""
-  //           } Da Nang, Vietnam`}
-  //         </h2>
-  //         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-  //           <DialogTrigger asChild>
-  //             <Button variant="outline">
-  //               <SlidersHorizontal className="mr-2 h-4 w-4" />
-  //               Filters
-  //             </Button>
-  //           </DialogTrigger>
-  //           <FiltersDialog onSubmit={setDialogOpen} />
-  //         </Dialog>
-  //       </div>
-  //       <div className="p-4 pt-0 grid grid-cols-2 gap-4">
-  //         {data.map((item) => (
-  //           <ListingListItem
-  //             favorite={favoritesSet.has(item.list_id)}
-  //             list_id={item.list_id}
-  //             thumbnail_image={item.thumbnail_image}
-  //             subject={item.subject}
-  //             price={item.price}
-  //             href={createLink(item.list_id)}
-  //           />
-  //         ))}
-  //       </div>
-  //       <PaginationDemo />
-  //     </div>
-  //   </div>
-  // );
 }
