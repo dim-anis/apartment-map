@@ -154,20 +154,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const maxPrice = url.searchParams.get("maxPrice") || "*";
   const priceRange = `${minPrice}-${maxPrice}`;
   const district = url.searchParams.get("district") || "";
-  const markers = url.searchParams.get("markers ") || "";
+  const markers = url.searchParams.get("markers") || "";
 
   const [
-    { ads: listings },
-    regions,
-    { rows: rawMarkers },
-    { rows: rawMarkerTypes },
-    { rows: rawFavorites },
-  ]: [
-    { ads: Listing[]; total: number },
-    GetRegionsResponse,
-    { rows: Row[] },
-    { rows: Row[] },
-    { rows: Row[] }
+    listingsData,
+    regionsData,
+    markersData,
+    markerTypesData,
+    favoritesData,
   ] = await Promise.all([
     // getListings({ price: priceRange, area_v2: district }),
     getAllListings({ price: priceRange, area_v2: district }),
@@ -177,11 +171,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getFavorites(),
   ]);
 
-  const posMarkers = rawMarkers as any as POSMarker[];
-  const markerTypes = rawMarkerTypes as any as MarkerType[];
-  const favorites = rawFavorites as any as FavoriteListing[];
+  const posMarkers = markersData.rows as any as POSMarker[];
+  const markerTypes = markerTypesData.rows as any as MarkerType[];
+  const favorites = favoritesData.rows as any as FavoriteListing[];
 
-  return json({ listings, regions, posMarkers, markerTypes, favorites });
+  return json({
+    listings: listingsData.ads,
+    regions: regionsData,
+    markers: posMarkers,
+    markerTypes,
+    favorites,
+  });
 };
 
 export default function Index() {
@@ -189,7 +189,7 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const districtId = searchParams.get("district");
 
-  const { listings, regions, posMarkers } = useLoaderData<typeof loader>();
+  const { listings, regions, markers } = useLoaderData<typeof loader>();
 
   const districtName = districtId
     ? regions.regionFollowId.entities.regions["3017"].area[districtId].name
@@ -202,7 +202,7 @@ export default function Index() {
         {() => (
           <LeafletMapWithClusters
             listings={listings}
-            posMarkers={posMarkers}
+            posMarkers={markers}
             center={center}
           />
         )}
