@@ -13,24 +13,24 @@ export function PaginationDemo() {
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
+          <PaginationPrevious to="#" />
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href="#">1</PaginationLink>
+          <PaginationLink to="#">1</PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href="#" isActive>
+          <PaginationLink to="#" isActive>
             2
           </PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
+          <PaginationLink to="#">3</PaginationLink>
         </PaginationItem>
         <PaginationItem>
           <PaginationEllipsis />
         </PaginationItem>
         <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext to="#" />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
