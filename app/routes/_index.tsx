@@ -60,19 +60,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   type SearchParams = {
     limit?: string;
-    outset?: string;
+    offset?: string;
     price?: string;
     area_v2?: string;
   };
 
   function constructUrl(
     baseUrl: string,
-    { limit = "50", outset = "50", price, area_v2 }: SearchParams
+    { limit = "50", offset = "0", price, area_v2 }: SearchParams
   ) {
     const url = new URL(baseUrl);
 
     url.searchParams.set("limit", limit);
-    url.searchParams.set("outset", outset);
+    url.searchParams.set("o", offset);
 
     price && url.searchParams.set("price", price);
     area_v2 && url.searchParams.set("area_v2", area_v2);
@@ -90,10 +90,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const ads = [];
 
     let limit = "50";
-    let outset = "0";
+    let offset = "0";
 
     const response = await fetch(
-      constructUrl(BASE_URL, { limit, outset, price, area_v2 })
+      constructUrl(BASE_URL, { limit, offset, price, area_v2 })
     );
     const data = (await response.json()) as any as {
       total: number;
@@ -103,9 +103,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     let numOfAds = ads.push(...data.ads);
 
     while (numOfAds < data.total) {
-      outset = (Number(outset) + 50).toString();
+      offset = (Number(offset) + 50).toString();
       const response = await fetch(
-        constructUrl(BASE_URL, { limit, outset, price, area_v2 })
+        constructUrl(BASE_URL, { limit, offset, price, area_v2 })
       );
       const data = (await response.json()) as any as {
         total: number;
@@ -123,38 +123,38 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   async function getListings({
     price,
     area_v2,
+    limit = "50",
+    offset = "0",
   }: {
     price: string;
     area_v2: string;
+    limit: string;
+    offset: string;
   }) {
-    const ads = [];
-
-    let limit = "50";
-    let outset = "0";
-
     const response = await fetch(
-      constructUrl(BASE_URL, { limit, outset, price, area_v2 })
+      constructUrl(BASE_URL, { limit, offset, price, area_v2 })
     );
     const data = (await response.json()) as any as {
       total: number;
       ads: Listing[];
     };
 
-    let numOfAds = ads.push(...data.ads);
-
-    return { total: ads.length, ads };
+    return data;
   }
 
   const getRegions = async () => {
     const res = await fetch(GET_REGIONS_ENDPOINT);
     return (await res.json()) as GetRegionsResponse;
   };
+
   const url = new URL(request.url);
   const minPrice = url.searchParams.get("minPrice") || "0";
   const maxPrice = url.searchParams.get("maxPrice") || "*";
   const priceRange = `${minPrice}-${maxPrice}`;
   const district = url.searchParams.get("district") || "";
   const markers = url.searchParams.get("markers") || "";
+  const offset = url.searchParams.get("offset") || "0";
+  const limit = url.searchParams.get("limit") || "50";
 
   const [
     listingsData,
@@ -163,8 +163,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     markerTypesData,
     favoritesData,
   ] = await Promise.all([
-    // getListings({ price: priceRange, area_v2: district }),
-    getAllListings({ price: priceRange, area_v2: district }),
+    getListings({ price: priceRange, area_v2: district, limit, offset }),
+    // getAllListings({ price: priceRange, area_v2: district }),
     getRegions(),
     turso.execute(`SELECT * from markers WHERE type_id IN (${markers})`),
     turso.execute(`SELECT * from marker_types`),
@@ -176,7 +176,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const favorites = favoritesData.rows as any as FavoriteListing[];
 
   return json({
-    listings: listingsData.ads,
+    listingsData,
     regions: regionsData,
     markers: posMarkers,
     markerTypes,
@@ -189,7 +189,11 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const districtId = searchParams.get("district");
 
-  const { listings, regions, markers } = useLoaderData<typeof loader>();
+  const {
+    listingsData: { total, ads: listings },
+    regions,
+    markers,
+  } = useLoaderData<typeof loader>();
 
   const districtName = districtId
     ? regions.regionFollowId.entities.regions["3017"].area[districtId].name
@@ -197,7 +201,7 @@ export default function Index() {
 
   return (
     <div className="h-screen">
-      <ListingList data={listings} districtName={districtName} />
+      <ListingList data={{ total, listings }} districtName={districtName} />
       <ClientOnly>
         {() => (
           <LeafletMapWithClusters
