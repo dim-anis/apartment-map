@@ -6,7 +6,7 @@ import { Dialog, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { FiltersDialog } from "./FiltersDialog";
 import { List, SlidersHorizontal } from "lucide-react";
-import { PaginationDemo } from "./Pagination";
+import { Pagination } from "./Pagination";
 import { useLoaderData } from "@remix-run/react";
 import { loader } from "~/routes/_index";
 
@@ -20,10 +20,10 @@ import {
 } from "~/components/ui/sheet";
 
 export default function ListingList({
-  data,
+  data: { total, listings },
   districtName,
 }: {
-  data: Listing[];
+  data: { total: number; listings: Listing[] };
   districtName: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -46,7 +46,7 @@ export default function ListingList({
           <SheetHeader>
             <div className="flex flex-row justify-between items-center mt-6">
               <SheetTitle>
-                {`${data.length} apartments in ${
+                {`${total} apartments in ${
                   districtName ? districtName + "," : ""
                 } Da Nang, Vietnam`}
               </SheetTitle>
@@ -63,7 +63,7 @@ export default function ListingList({
           </SheetHeader>
 
           <div className="grid gap-4 grid-cols-2">
-            {data.map((item) => (
+            {listings.map((item) => (
               <ListingListItem
                 key={item.list_id}
                 favorite={favoritesSet.has(item.list_id)}
@@ -75,8 +75,8 @@ export default function ListingList({
               />
             ))}
           </div>
+          <Pagination data={{ total, listings }} />
         </div>
-        {/* <PaginationDemo /> */}
       </SheetContent>
     </Sheet>
   );
